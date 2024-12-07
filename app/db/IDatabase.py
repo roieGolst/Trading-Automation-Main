@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from common.Response import Response
+from app.common.Response import Response
 
 
 class IDatabase(ABC):

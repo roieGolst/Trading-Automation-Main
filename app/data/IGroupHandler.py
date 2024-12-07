@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from service.grpc.ITradingStub import ITradingStub
+from app.service.grpc.ITradingStub import ITradingStub
 
 
 class IGroupHandler(ABC):

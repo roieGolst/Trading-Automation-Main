@@ -1,14 +1,14 @@
-from service.grpc.ITradingStub import ITradingStub
-# from service.grpc.proto.dist_worker.types_pb2 import Status
-# from service.grpc.proto.dist_worker.ActivationTask_pb2 import Task as ActivationTask
-# from service.grpc.proto.dist_worker.ActivationTask_pb2 import Response as ActivationResponse
-# from service.grpc.proto.dist_worker.DeactivationTask_pb2 import Task as DeactivationTask
-# from service.grpc.proto.dist_worker.TransactionTask_pb2 import Task as TransactionTask
-from service.grpc.proto.dist_worker.WorkerTradingService_pb2_grpc import WorkerTradingServiceStub
+from app.service.grpc.ITradingStub import ITradingStub
+# from app.service.grpc.proto.dist_worker.types_pb2 import Status
+# from app.service.grpc.proto.dist_worker.ActivationTask_pb2 import Task as ActivationTask
+# from app.service.grpc.proto.dist_worker.ActivationTask_pb2 import Response as ActivationResponse
+# from app.service.grpc.proto.dist_worker.DeactivationTask_pb2 import Task as DeactivationTask
+# from app.service.grpc.proto.dist_worker.TransactionTask_pb2 import Task as TransactionTask
+from app.service.grpc.proto.dist_worker.WorkerTradingService_pb2_grpc import WorkerTradingServiceStub
 
-from service.grpc.proto.dist_worker.ActivationTask_pb2 import Task as ActivationTask
-from service.grpc.proto.dist_worker.DeactivationTask_pb2 import Task as DeactivationTask
-from service.grpc.proto.dist_worker.TransactionTask_pb2 import Task as TransactionTask
+from app.service.grpc.proto.dist_worker.ActivationTask_pb2 import Task as ActivationTask
+from app.service.grpc.proto.dist_worker.DeactivationTask_pb2 import Task as DeactivationTask
+from app.service.grpc.proto.dist_worker.TransactionTask_pb2 import Task as TransactionTask
 import grpc
 
 

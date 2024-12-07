@@ -1,9 +1,9 @@
 import threading
 
 from dataclasses import dataclass
-from data.IGroupHandler import IGroupHandler
-from db.IDatabase import IDatabase
-from service.grpc.ITradingStub import ITradingStub
+from app.data.IGroupHandler import IGroupHandler
+from app.db.IDatabase import IDatabase
+from app.service.grpc.ITradingStub import ITradingStub
 
 
 @dataclass
@@ -20,7 +20,6 @@ class DefaultGroupHandler(IGroupHandler):
     __lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
-        # Double-checked locking to ensure thread-safe instantiation
         if not cls.__instance:
             with cls.__lock:
                 if not cls.__instance:
@@ -44,14 +43,19 @@ class DefaultGroupHandler(IGroupHandler):
 
         return group
 
+    def get_groups(self) -> [ITradingStub]:
+        return self.__group_dist.values()
+
     def _set_group(self, group_name: str, stub: ITradingStub):
         self.__group_dist[group_name] = stub
+        self.__db.create_group(group_name)
 
     def on_new_client(self, stub: ITradingStub) -> None:
         if not self.__new_group_task_queue:
             return None
 
         group_name = self.__new_group_task_queue.pop(0)
+        print(f"Group consumer: {group_name}")
         self._set_group(group_name, stub)
         self.__db.create_group(group_name)
 

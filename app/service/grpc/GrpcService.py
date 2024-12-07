@@ -101,11 +101,12 @@ class GrpcService(IGrpcService):
         self._server.add_insecure_port(f'{self._connection_params.host}:{self._connection_params.port}')
         self._server.start()
         # TODO: Think about the thread block with server in background
-        self._server.wait_for_termination()
+        # self._server.wait_for_termination()
 
     def _run_client(self, host: str):
         try:
             channel = grpc.insecure_channel(f'{host}')
+            print(f"Successfully connect to client in {host}")
             stub = MyTradingStub(channel)
             self._connection_params.on_new_client(stub)
 

@@ -3,8 +3,8 @@ from typing import Callable, Coroutine
 from urllib import parse
 
 import grpc
-from service.grpc.proto.dist_main.MainTradingService_pb2 import Ping, Pong
-from service.grpc.proto.dist_main.MainTradingService_pb2_grpc import MainTradingServiceServicer
+from app.service.grpc.proto.dist_main.MainTradingService_pb2 import Ping, Pong
+from app.service.grpc.proto.dist_main.MainTradingService_pb2_grpc import MainTradingServiceServicer
 
 
 def extract_ip(encoded_str):
@@ -40,6 +40,7 @@ class MyMainTradingServiceServicer(MainTradingServiceServicer):
             return
 
         try:
+            print(f"New connection from {worker_ip}:{request.return_to_port}")
             self.new_client_cb(f"{worker_ip}:{request.return_to_port}")
         except grpc.RpcError as err:
             # TODO: Add logger
