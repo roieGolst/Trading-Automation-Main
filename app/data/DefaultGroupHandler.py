@@ -31,6 +31,14 @@ class DefaultGroupHandler(IGroupHandler):
         self.__new_group_task_queue = list()
         self.__group_dist = dict()
 
+    @classmethod
+    def get_instance(cls):
+        if not cls.__instance:
+            with cls.__lock:
+                if not cls.__instance:
+                    raise Exception("Instance not initiate yet")
+        return cls.__instance
+
     def create_group(self, group_name: str):
         self.__new_group_task_queue.append(group_name)
 

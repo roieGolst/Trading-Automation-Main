@@ -5,6 +5,12 @@ from app.service.grpc.ITradingStub import ITradingStub
 
 
 class IGroupHandler(ABC):
+
+    @staticmethod
+    @abstractmethod
+    def get_instance():
+        pass
+
     @abstractmethod
     def create_group(self, group_name: str):
         pass
