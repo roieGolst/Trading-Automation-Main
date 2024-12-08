@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "trading-automation-main"
+version = "0.1.0"
+description = ""
+authors = ["RoieGolst <roiegol9@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+grpcio = "^1.68.0"
+grpcio-tools = "^1.68.0"
+protoletariat = "^3.3.2"
+mypy-protobuf = "^3.6.0"
+redis = "^5.2.0"
+typing-extensions = "^4.12.2"
+fastapi = {extras = ["standard"], version = "^0.115.5"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package TradingService;
+
+service MainTradingService {
+  rpc ping(Ping) returns (Pong);
+}
+message Ping {
+  int32 return_to_port = 1;
+}
+
+message Pong {
+}
