@@ -1,6 +1,8 @@
 import threading
 
 from dataclasses import dataclass
+from typing_extensions import Self
+
 from app.data.IGroupHandler import IGroupHandler
 from app.db.IDatabase import IDatabase
 from app.service.grpc.ITradingStub import ITradingStub
@@ -32,7 +34,7 @@ class DefaultGroupHandler(IGroupHandler):
         self.__group_dist = dict()
 
     @classmethod
-    def get_instance(cls):
+    def get_instance(cls) -> Self:
         if not cls.__instance:
             with cls.__lock:
                 if not cls.__instance:

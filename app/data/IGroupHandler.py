@@ -6,9 +6,9 @@ from app.service.grpc.ITradingStub import ITradingStub
 
 class IGroupHandler(ABC):
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def get_instance():
+    def get_instance(cls):
         pass
 
     @abstractmethod
