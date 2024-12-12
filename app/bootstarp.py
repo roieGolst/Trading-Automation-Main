@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from logging import Logger
 
 from fastapi import FastAPI
 
@@ -14,6 +15,7 @@ class BootstrapParams:
     db_port: int
     gprc_host: str
     gprc_port: int
+    logger: Logger
 
 
 def bootstrap(params: BootstrapParams):
@@ -26,16 +28,20 @@ def bootstrap(params: BootstrapParams):
 
     DefaultGroupHandler(
         params=DefaultGroupHandlerParams(
-            db=RedisDB.get_instance()
+            db=RedisDB.get_instance(),
+            logger=params.logger
         )
     )
+
+    DefaultGroupHandler.get_instance().create_group("Roie")
 
     global grpc_service
     grpc_service = GrpcService(
         params=GrpcConnectionParams(
             host=params.gprc_host,
             port=params.gprc_port,
-            on_new_client=DefaultGroupHandler.get_instance().on_new_client
+            stub_handler=DefaultGroupHandler.get_instance(),
+            logger=params.logger
         )
     )
 
