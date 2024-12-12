@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.." || {
   exit 1
 }
 
-cd app/service/grpc/_proto || {
+cd app/service/grpc/proto || {
   echo "Failed to navigate to app/service/grpc/proto"
   exit 1
 }
@@ -23,13 +23,13 @@ poetry run python -m grpc_tools.protoc \
   --python_out=$WORKER_PROTO_DIST/ \
   --grpc_python_out=$WORKER_PROTO_DIST/ \
   --mypy_out=$WORKER_PROTO_DIST/ \
-  ./$WORKER_PROTO_DIR/*._proto
+  ./$WORKER_PROTO_DIR/*.proto
 
 protol \
   --create-package \
   --in-place \
   --python-out $WORKER_PROTO_DIST/ \
-  protoc --_proto-path=$WORKER_PROTO_DIR/ WorkerTradingService._proto
+  protoc --proto-path=$WORKER_PROTO_DIR/ WorkerTradingService.proto
 
 echo "Worker protos files generated successfully"
 
@@ -38,12 +38,12 @@ poetry run python -m grpc_tools.protoc \
   --python_out=$MAIN_PROTO_DIST/ \
   --grpc_python_out=$MAIN_PROTO_DIST/ \
   --mypy_out=$MAIN_PROTO_DIST/ \
-  ./$MAIN_PROTO_DIR/*._proto
+  ./$MAIN_PROTO_DIR/*.proto
 
 protol \
   --create-package \
   --in-place \
   --python-out $MAIN_PROTO_DIST/ \
-  protoc --_proto-path=$MAIN_PROTO_DIR/ MainTradingService._proto
+  protoc --proto-path=$MAIN_PROTO_DIR/ MainTradingService.proto
 
 echo "Main protos files generated successfully"
