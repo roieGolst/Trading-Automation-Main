@@ -33,8 +33,6 @@ def bootstrap(params: BootstrapParams):
         )
     )
 
-    DefaultGroupHandler.get_instance().create_group("Roie")
-
     global grpc_service
     grpc_service = GrpcService(
         params=GrpcConnectionParams(
