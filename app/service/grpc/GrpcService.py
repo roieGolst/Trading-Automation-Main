@@ -81,7 +81,7 @@ class GrpcService(IGrpcService):
             ]
         )
         try:
-            self._stub_handler.on_new_client(
+            result = self._stub_handler.on_new_client(
                 lambda stub_id: _Stub(
                     stub_id,
                     channel,
@@ -90,8 +90,13 @@ class GrpcService(IGrpcService):
             )
 
         except Exception as err:
-            self._logger.error(f"Falid to connect to on {host}"
+            self._logger.error(f"Failed to create connection on {host}"
                                f"   Error: {err}")
-            return
+            raise Exception(f"Grpc Main Server Error: {err}")
+
+        if not result:
+            self._logger.info(f"No needed client.\nclosing connection on {host}")
+            raise Exception("Grpc Main Server Error: No needed connection")
+
 
         self._logger.info(f"Successfully connect to client on {host}")

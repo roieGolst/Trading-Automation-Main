@@ -69,9 +69,9 @@ class DefaultGroupHandler(IGroupHandler, IStubHandler):
         self._group_dist[group_name] = stub
         self._db.create_group(group_name)
 
-    def on_new_client(self, stub_factory: StubFactory) -> None:
+    def on_new_client(self, stub_factory: StubFactory) -> bool:
         if not self._new_group_task_queue and not self._pending_closed_groups:
-            return None
+            return False
 
         if self._pending_closed_groups:
             group_name, task_queue = self._pending_closed_groups.pop(0)
@@ -84,7 +84,8 @@ class DefaultGroupHandler(IGroupHandler, IStubHandler):
                     stub.activation(task)
                 except Exception:
                     self._logger.exception("Stub Error!!!!")
-            return
+                    return False
+            return True
 
         group_name = self._new_group_task_queue.pop()
         stub = stub_factory(group_name)
@@ -92,6 +93,8 @@ class DefaultGroupHandler(IGroupHandler, IStubHandler):
         self._logger.debug(f"Waiting group consumed: {group_name}")
         self._set_group(group_name, stub)
         self._db.create_group(group_name)
+
+        return True
 
     def on_client_close(self, id: str):
         self._logger.info(f"Stub: {id} closed. build pending task queue!")
