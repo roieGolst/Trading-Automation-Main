@@ -51,8 +51,12 @@ class DefaultGroupHandler(IGroupHandler, IStubHandler):
                     raise Exception("Instance not initiate yet")
         return cls.__instance
 
-    def create_group(self, group_name: str):
+    def create_group(self, group_name: str) -> bool:
+        if group_name in self._new_group_task_queue:
+            return False
+
         self._new_group_task_queue.add(group_name)
+        return True
 
     def get_group(self, group_name: str) -> Optional[ITradingStub]:
         group = self._group_dist.get(group_name)
