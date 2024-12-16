@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from app.service.grpc.ITradingStub import ITradingStub
+from app.service.grpc.stub.ITradingStub import ITradingStub
 
 
+# TODO: Reconsidering if this class should return ITradingStub instances or wrap them
 class IGroupHandler(ABC):
 
     @classmethod
@@ -17,7 +18,4 @@ class IGroupHandler(ABC):
 
     @abstractmethod
     def get_group(self, group_name: str) -> Union[ITradingStub, None]:
-        pass
-
-    def on_new_client(self, client: ITradingStub) -> None:
         pass
