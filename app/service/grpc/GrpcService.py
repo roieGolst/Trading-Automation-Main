@@ -55,7 +55,7 @@ class GrpcService(IGrpcService):
 
     def start(self):
         self._logger.debug("Staring gRPC server for Ping/Pong communication on: "
-                           "f'{self.host}:{self.port}'")
+                           f'{self._host}:{self._port}')
         self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
         add_MainTradingServiceServicer_to_server(
             servicer=_MainTradingServiceServicer(
@@ -68,7 +68,7 @@ class GrpcService(IGrpcService):
         self._server.add_insecure_port(f'{self._host}:{self._port}')
         self._server.start()
         self._logger.info("gRPC server is listening for Ping/Pong communication on: "
-                          "f'{self.host}:{self.port}...'")
+                          f"{self._host}:{self._port}")
 
     def _run_client(self, host: str):
         self._logger.info(f"Trying to crate gRPC connection on: {host}")
@@ -80,13 +80,18 @@ class GrpcService(IGrpcService):
                 ('grpc.keepalive_permit_without_calls', True),
             ]
         )
-
-        self._stub_handler.on_new_client(
-            lambda stub_id: _Stub(
-                stub_id,
-                channel,
-                self._stub_handler.on_client_close
+        try:
+            self._stub_handler.on_new_client(
+                lambda stub_id: _Stub(
+                    stub_id,
+                    channel,
+                    self._stub_handler.on_client_close
+                )
             )
-        )
 
-        self._logger.info(f"Successfully connect to client in {host}")
+        except Exception as err:
+            self._logger.error(f"Falid to connect to on {host}"
+                               f"   Error: {err}")
+            return
+
+        self._logger.info(f"Successfully connect to client on {host}")
