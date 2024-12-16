@@ -8,7 +8,7 @@ StubFactory = Callable[[str], _Stub]
 
 class IStubHandler(ABC):
     @abstractmethod
-    def on_new_client(self, stub_factory: StubFactory):
+    def on_new_client(self, stub_factory: StubFactory) -> bool:
         pass
 
     @abstractmethod

@@ -4,12 +4,15 @@ import grpc
 from grpc import Channel
 from grpc import ChannelConnectivity
 
+from app.common.Response import Response
+from app.service.grpc.model.types import ActivationTask, ActivationResponse, Brokerage, DeactivationTask, \
+    DeactivationResponse, TransactionTask, TransactionResponse
 from app.service.grpc.proto.dist_worker import ActivationTask_pb2 as Activation, DeactivationTask_pb2 as Deactivation, \
     TransactionTask_pb2 as Transaction
+from app.service.grpc.proto.dist_worker.ActivationTask_pb2 import Brokerage as GrpcBrokerage, ActivationCreds
 from app.service.grpc.proto.dist_worker.WorkerTradingService_pb2_grpc import WorkerTradingServiceStub
-from app.service.grpc.proto.dist_worker.types_pb2 import Status
+from app.service.grpc.proto.dist_worker.types_pb2 import Status, BaseTask, UUID
 from app.service.grpc.stub.ITradingStub import ITradingStub
-
 
 OnCloseCB = Callable[[str], None]
 
@@ -65,25 +68,89 @@ class _Stub(ITradingStub, WorkerTradingServiceStub):
             self._channel.close()
             self._on_close_function(self._id)
 
-    def health_check(self):
+    def activation(self, task: ActivationTask) -> Response[ActivationResponse]:
         try:
-            self.HealthCheck()
-        except grpc.RpcError as err:
-            print(err.code())
-
-    def activation(self, task: Activation.Task) -> Activation.Response:
-        try:
-            result = self.Activation(task)
-            return result
-        except grpc.RpcError:
-            return Activation.Response(
-                status=Status.Failure,
-                message="Stub error"
+            activation_task = Activation.Task(
+                base_task=BaseTask(task_id=UUID(value=str(task.task_id))),
+                brokerage=task.brokerage,
+                account_details=self._cast_creds(task.brokerage.name, task.cred)
             )
 
-    def deactivation(self, task: Deactivation.Task) -> Deactivation.Response:
+            result: Activation.Response = self.Activation(activation_task)
+
+            return Response[ActivationResponse](
+                success=True,
+                value=ActivationResponse(account_id=result.account_id.value)
+            )
+        except grpc.RpcError:
+            return Response(
+                success=False,
+                error="Stub error"
+            )
+
+    def _cast_brokerage(self, brokerage: Brokerage) -> GrpcBrokerage:
+        casting_map = {
+            Brokerage.BBAE: GrpcBrokerage.BBAE,
+            Brokerage.Chase: GrpcBrokerage.Chase,
+            Brokerage.DSPAC: GrpcBrokerage.DSPAC,
+            Brokerage.Fennel: GrpcBrokerage.Fennel,
+            Brokerage.Fidelity: GrpcBrokerage.Fidelity,
+            Brokerage.Firstrade: GrpcBrokerage.Firstrade,
+            Brokerage.Public: GrpcBrokerage.Public,
+            Brokerage.Robinhood: GrpcBrokerage.Robinhood,
+            Brokerage.Schwab: GrpcBrokerage.Schwab,
+            Brokerage.SoFi: GrpcBrokerage.SoFi,
+            Brokerage.Tornado: GrpcBrokerage.Tornado,
+            Brokerage.Tradier: GrpcBrokerage.Tradier,
+            Brokerage.Tastytrade: GrpcBrokerage.Tastytrade,
+            Brokerage.Webull: GrpcBrokerage.Webull,
+            Brokerage.Vanguard: GrpcBrokerage.Vanguard,
+            Brokerage.WellsFargo: GrpcBrokerage.WellsFargo,
+        }
+
+        return casting_map[brokerage]
+
+    def _cast_creds(self, broker_name: str, account_details: dict[str, any]) -> ActivationCreds:
+        broker_fields = {
+            'BBAE': ['USERNAME', 'PASSWORD'],
+            'Chase': ['USERNAME', 'PASSWORD', 'PHONE_LAST_FOUR', 'DEBUG'],
+            'DSPAC': ['USERNAME', 'PASSWORD'],
+            'Fennel': ['EMAIL'],
+            'Fidelity': ['USERNAME', 'PASSWORD', 'TOTP_SECRET_OR_NA'],
+            'Firstrade': ['USERNAME', 'PASSWORD', 'OTP'],
+            'Public': ['USERNAME', 'PASSWORD'],
+            'Robinhood': ['USERNAME', 'PASSWORD', 'TOTP_OR_NA'],
+            'Schwab': ['USERNAME', 'PASSWORD', 'TOTP_SECRET_OR_NA'],
+            'SoFi': ['USERNAME', 'PASSWORD', 'TOTP_SECRET'],
+            'Tastytrade': ['USERNAME', 'PASSWORD'],
+            'Tornado': ['EMAIL', 'PASSWORD'],
+            'Tradier': ['ACCESS_TOKEN'],
+            'Vanguard': ['USERNAME', 'PASSWORD', 'PHONE_LAST_FOUR', 'DEBUG'],
+            'Webull': ['USERNAME', 'PASSWORD', 'DID', 'TRADING_PIN'],
+            'WellsFargo': ['USERNAME', 'PASSWORD', 'PHONE_LAST_FOUR'],
+        }
+
+        fields = broker_fields.get(broker_name)
+        if not fields:
+            raise ValueError(f"Broker '{broker_name}' is not supported for serialization.")
+
+        details_fields = {}
+        for field in fields:
+            value = account_details.get(field)
+            if value is None:
+                raise ValueError(f"Missing field '{field}' for broker '{broker_name}'.")
+
+            details_fields[field] = value
+
+        return ActivationCreds(**details_fields)
+
+    def deactivation(self, task: DeactivationTask) -> DeactivationResponse:
         try:
-            result = self.Deactivation(task)
+            deactivation_task = Deactivation.Task(
+                base_task=BaseTask(task_id=UUID(value=str(task.task_id))),
+                account_id=UUID(value=str(task.account_id))
+            )
+            result = self.Deactivation(deactivation_task)
             return result
         except grpc.RpcError:
             return Deactivation.Response(
@@ -91,9 +158,16 @@ class _Stub(ITradingStub, WorkerTradingServiceStub):
                 message="Stub error"
             )
 
-    def transaction(self, task: Transaction.Task) -> Transaction.Response:
+    def transaction(self, task: TransactionTask) -> TransactionResponse:
         try:
-            result = self.Transaction(task)
+            transaction_task = Transaction.Task(
+                base_task=BaseTask(task_id=UUID(value=str(task.task_id))),
+                method=task.transaction_method,
+                amount=task.amount,
+                ticker=task.ticker
+            )
+
+            result = self.Transaction(transaction_task)
             return result
         except grpc.RpcError:
             return Transaction.Response(
