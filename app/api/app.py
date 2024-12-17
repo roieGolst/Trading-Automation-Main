@@ -62,6 +62,7 @@ def activate_user(activate_request: ActivationRequest):
         broker = cast_string_brokerage(activate_request.brokerage)
         response: Response[ActivationResponse] = group_stub.activation(
             task=ActivationTask(
+                account_name=activate_request.account_name,
                 brokerage=broker,
                 creds=activate_request.cred
             )
@@ -87,7 +88,7 @@ def activate_user(activate_request: ActivationRequest):
         brokerage=broker,
         account_details=activate_request.cred
     )
-    return {"accountId": response.value.account_id}
+    return "Account created"
 
 
 # TODO: Add endpoint models

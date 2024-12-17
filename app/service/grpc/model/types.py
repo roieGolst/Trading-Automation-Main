@@ -45,8 +45,8 @@ class Task(ABC):
         self.task_id = task_id
 
     @staticmethod
-    def Activation(brokerage: Brokerage, creds: Any):
-        return _ActivationTask(brokerage, creds)
+    def Activation(account_name: str, brokerage: Brokerage, creds: Any):
+        return _ActivationTask(account_name,brokerage, creds)
 
     @staticmethod
     def Deactivation(account_id: UUID):
@@ -58,11 +58,13 @@ class Task(ABC):
 
 
 class _ActivationTask(Task):
+    account_name: str
     brokerage: Brokerage
     cred: any
 
-    def __init__(self, brokerage: Brokerage, creds: dict):
+    def __init__(self, account_name: str, brokerage: Brokerage, creds: dict):
         super().__init__(task_type=TaskType.Activation, task_id=uuid.uuid4())
+        self.account_name = account_name
         self.brokerage = brokerage
         self.cred = self.parse_creds(creds)
 
@@ -134,7 +136,7 @@ TransactionTask = _TransactionTask
 
 @dataclass
 class ActivationResponse:
-    account_id: str
+    success: bool
 
 
 @dataclass

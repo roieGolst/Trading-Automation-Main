@@ -72,15 +72,17 @@ class _Stub(ITradingStub, WorkerTradingServiceStub):
         try:
             activation_task = Activation.Task(
                 base_task=BaseTask(task_id=UUID(value=str(task.task_id))),
+                account_name=task.account_name,
                 brokerage=task.brokerage,
                 account_details=self._cast_creds(task.brokerage.name, task.cred)
             )
 
             result: Activation.Response = self.Activation(activation_task)
+            status = True if result.status == Status.Success else False
 
             return Response[ActivationResponse](
                 success=True,
-                value=ActivationResponse(account_id=result.account_id.value)
+                value=ActivationResponse(success=status)
             )
         except grpc.RpcError:
             return Response(

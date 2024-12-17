@@ -55,6 +55,7 @@ class DefaultGroupHandler(IGroupHandler, IStubHandler):
         if group_name in self._new_group_task_queue:
             return False
 
+        self._logger.debug(f"Creating new group named: {group_name}")
         self._new_group_task_queue.add(group_name)
         return True
 
