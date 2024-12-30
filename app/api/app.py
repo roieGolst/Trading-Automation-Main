@@ -93,11 +93,11 @@ def activate_user(activate_request: ActivationRequest):
 
 # TODO: Add endpoint models
 @router.post("/deactivate")
-def deactivate_task(group_name: str, account_id: str):
+def deactivate_task(group_name: str, account_name: str):
     groups_stub = DefaultGroupHandler.get_instance().get_group(group_name)
 
     deactivation_task = DeactivationTask(
-        account_id=UUID(account_id)
+        account_name=account_name
     )
 
     response: Response[DeactivationResponse] = groups_stub.deactivation(deactivation_task)

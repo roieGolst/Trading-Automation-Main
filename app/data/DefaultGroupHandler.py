@@ -120,12 +120,14 @@ class DefaultGroupHandler(IGroupHandler, IStubHandler):
                 continue
 
             account_details = self._db.get_account_details(account_id)
+            account_name = account.get("account_name")
             account_brokerage = account.get("brokerage")
 
-            if not account_details or not account_brokerage:
+            if not account_details or not account_brokerage or not account_name:
                 continue
 
             activation_task = ActivationTask(
+                account_name=account_name,
                 brokerage=Brokerage(int(account_brokerage)),
                 creds=account_details
             )

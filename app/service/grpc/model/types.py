@@ -110,11 +110,11 @@ class _ActivationTask(Task):
 
 
 class _DeactivationTask(Task):
-    account_id: UUID
+    account_name: str
 
-    def __init__(self, account_id: UUID):
+    def __init__(self, account_name: str):
         super().__init__(task_type=TaskType.Deactivation, task_id=uuid.uuid4())
-        self.account_id = account_id
+        self.account_name = account_name
 
 
 class _TransactionTask(Task):

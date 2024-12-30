@@ -150,7 +150,7 @@ class _Stub(ITradingStub, WorkerTradingServiceStub):
         try:
             deactivation_task = Deactivation.Task(
                 base_task=BaseTask(task_id=UUID(value=str(task.task_id))),
-                account_id=UUID(value=str(task.account_id))
+                account_name=task.account_name
             )
             result = self.Deactivation(deactivation_task)
             return result
