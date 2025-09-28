@@ -1,7 +1,7 @@
 # Trading Automation Main
 
-Central control plane for the Trading Automation platform. The main service exposes a FastAPI REST interface, manages trading groups and accounts in Redis, and orchestrates gRPC connections to distributed 
-[Trading-Automation-Worker](https://github.com/roieGolst/Trading-Automation-Worker) nodes.
+Central control plane for the Trading Automation platform. The main service exposes a FastAPI REST interface, manages trading groups and accounts in Redis, and orchestrates gRPC connections to 
+distributed [Trading-Automation-Worker](https://github.com/roieGolst/Trading-Automation-Worker) nodes.
 
 ## System Architecture
 
