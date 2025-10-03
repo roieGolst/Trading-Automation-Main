@@ -2,7 +2,8 @@ version: '3'
 
 services:
   worker:
-    image: worker:latest
+    image: ta-worker:latest
+    pull_policy: if_not_present
     ports:
       - "50054:50054"
     depends_on:

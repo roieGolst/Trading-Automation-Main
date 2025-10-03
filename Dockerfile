@@ -12,6 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Now copy the rest of your source code
 COPY . .
 
+# Build .proto files
+RUN chmod +x  ./scripts/proto_build.sh
+RUN bash ./scripts/proto_build.sh
+
 EXPOSE 8000
 
 CMD ["fastapi", "run", "app/main.py"]
