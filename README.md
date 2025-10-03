@@ -24,6 +24,65 @@ distributed [Trading-Automation-Worker](https://github.com/roieGolst/Trading-Aut
    REST Consumers
 ```
 
+<details>
+<summary>Worker Communication Flow (ASCII)</summary>
+
+```
+                             ┌────────────────────────────┐
+                             │        REST Clients        │
+                             └────────────┬───────────────┘
+                                          │ JSON/HTTPS
+                                          ▼
+                   ┌────────────────────────────────────────────┐
+                   │        Trading Automation Main             │
+                   │────────────────────────────────────────────│
+                   │    FastAPI Layer                           │
+                   │                                            │
+                   │   ┌────────────────────────────────────┐   │
+                   │   │  Router (/createGroup,/activate)   │   │
+                   │   └────────────────┬───────────────────┘   │
+                   │                    │ look up group stub    │
+                   │   ┌────────────────▼───────────────────┐   │
+                   │   │      DefaultGroupHandler           │   │
+                   │   │  • queues new groups               │   │
+                   │   │  • maps groups → worker stubs      │   │
+                   │   │  • replays tasks on reconnect      │   │
+                   │   └────────────────┬───────────────────┘   │
+                   │                    │ persist metadata      │
+                   │   ┌────────────────▼───────────────────┐   │
+                   │   │             RedisDB                │   │
+                   │   │  • group registry                  │   │
+                   │   │  • account creds & status          │   │
+                   │   └────────────────┬───────────────────┘   │
+                   │                    │ worker lifecycle      │
+                   │    gRPC Control Plane                      │
+                   │   ┌────────────────▼───────────────────┐   │
+                   │   │   MainTradingService (Ping)        │   │
+                   │   │  • waits for worker Ping           │   │
+                   │   │  • extracts worker callback addr   │   │
+                   │   └────────────────┬───────────────────┘   │
+                   │                    │ host:port             │
+                   │   ┌────────────────▼───────────────────┐   │
+                   │   │   Trading Stub (per worker)        │   │
+                   │   │  • holds gRPC channel              │   │
+                   │   │  • forwards activation/txn RPCs    │   │
+                   │   │  • watches channel health          │   │
+                   │   └────────────────┬───────────────────┘   │
+                   └────────────────────┼───────────────────────┘
+                                        │ secure gRPC
+                                        ▼
+             ┌────────────────────────────────────────────────────────┐
+             │              Trading Automation Worker                 │
+             │────────────────────────────────────────────────────────│
+             │  Ping Client  → sends Ping with callback port          │
+             │  gRPC Server  ← receives activation/deactivation/etc   │
+             │  Strategy Runtime → executes trading logic             │
+             │  Trading Adapter → talks to brokerage/exchange         │
+             └────────────────────────────────────────────────────────┘
+```
+
+</details>
+
 ## Capabilities
 
 - Orchestrates worker registration and reconnection via gRPC keepalive.
@@ -36,7 +95,7 @@ distributed [Trading-Automation-Worker](https://github.com/roieGolst/Trading-Aut
 
 - Python 3.9+
 - Redis 5.0+ (development and production data store)
-- Poetry (recommended) or pip
+- uv (recommended Python package manager) or pip
 - Docker & Docker Compose for containerized runs
 - Matching worker image deployed and reachable over gRPC
 
@@ -48,19 +107,20 @@ distributed [Trading-Automation-Worker](https://github.com/roieGolst/Trading-Aut
    cd Trading-Automation-Main
    ```
 
-2. **Install Poetry** (if needed)
+2. **Install uv** (if needed)
    ```bash
-   curl -sSL https://install.python-poetry.org | python3 -
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 3. **Install dependencies**
    ```bash
-   poetry install
+   uv sync
    ```
+   This creates `.venv` (if missing) and installs the locked dependencies from `uv.lock`.
 
 4. **Generate protobuf stubs**
    ```bash
-   poetry run bash scripts/proto_build.sh
+   uv run bash scripts/proto_build.sh
    ```
 
 5. **Run Redis locally** (Docker example):
@@ -70,7 +130,7 @@ distributed [Trading-Automation-Worker](https://github.com/roieGolst/Trading-Aut
 
 6. **Launch the API server**
    ```bash
-   poetry run fastapi run app/main.py --reload
+   uv run fastapi run app/main.py --reload
    ```
    - REST API available on `http://127.0.0.1:8000`
    - gRPC server listens on `0.0.0.0:50052` (from `app/main.py` bootstrap parameters)
@@ -82,11 +142,17 @@ distributed [Trading-Automation-Worker](https://github.com/roieGolst/Trading-Aut
   docker build -t trading-main .
   ```
 
+- **Prebuild worker image** (from [Trading-Automation-Worker](https://github.com/roieGolst/Trading-Automation-Worker))
+  ```bash
+  docker build -t ta-worker:latest .
+  ```
+  The compose stack depends on this tag, so build the worker image before `docker compose up`.
+
 - **Run with workers + Redis**
   ```bash
   docker compose up --build
   ```
-  Exposes REST (8000), gRPC (50052), and Redis (6379). The compose file expects a `worker:latest` image.
+  Exposes REST (8000), gRPC (50052), and Redis (6379). The compose file expects a `ta-worker:latest` image.
 
 ## Configuration
 
@@ -134,8 +200,8 @@ Swagger UI: `http://127.0.0.1:8000/docs` (when running with `fastapi run --reloa
 
 ## Development Tasks
 
-- **gRPC protos**: `poetry run bash scripts/proto_build.sh`
-- **Tests**: `poetry run pytest` (ensure Redis is running locally)
+- **gRPC protos**: `uv run bash scripts/proto_build.sh`
+- **Tests**: `uv run pytest` (ensure Redis is running locally)
 - **Linting**: Introduce `ruff`/`flake8`/`black` as needed; not yet defined in `pyproject.toml`.
 
 ## Project Layout
